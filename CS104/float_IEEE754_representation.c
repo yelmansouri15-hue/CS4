@@ -5,17 +5,29 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 /*
     Check if the architecture is valid for IEEE 754 binary32 representation
 */
 _Static_assert(sizeof(float) == 4, "Error: float must be 4 bytes.");
 _Static_assert(sizeof(float) * CHAR_BIT == 32, "Error: byte must have 8 bits.");
 
+float get_float(void);
+
 int main(void)
 {
-    int check_input;
     uint32_t representation;
+    float number;
+
+    number = get_float();
+
+    memcpy(&representation, &number, sizeof(number));
+
+    return EXIT_SUCCESS;
+}
+
+float get_float(void)
+{
+    int check_input;
     float number;
 
     do
@@ -25,7 +37,5 @@ int main(void)
     } 
     while (check_input != 1);
 
-    memcpy(&representation, &number, sizeof(number));
-    
-    return EXIT_SUCCESS;
+    return number;
 }
