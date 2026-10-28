@@ -1,0 +1,90 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Resources
+{% endblock %}
+
+{% block main %}
+    <h2 class="mb-4">Manage Resources</h2>
+
+    {% if session.user_role == 'Professor' %}
+        <!-- Add Resource Form -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                Add New Resource
+            </div>
+            <div class="card-body">
+                <form action="/resources" method="post" class="row g-3">
+                    <!-- Hidden input to specify the action type -->
+                    <input type="hidden" name="action" value="add">
+                    
+                    <div class="col-md-3">
+                        <select class="form-select" name="student_id" required>
+                            <option disabled selected value="">Assign to student...</option>
+                            {% for s in students %}
+                                <option value="{{ s.id }}">{{ s.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" name="title" placeholder="Brief description" autocomplete="off" required>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <input type="url" class="form-control" name="url_link" placeholder="URL Link (https://...)" autocomplete="off" required>
+                    </div>
+                    
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary w-100">Add</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Resources List -->
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Student</th>
+                    <th>Description</th>
+                    <th>Link</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in resources %}
+                    <tr>
+                        {% if session.user_role == 'Professor' %}
+                            <td>{{ r.student_name }}</td>
+                        {% else %}
+                            <td>{{ r.professor_name }}</td>
+                        {% endif %}
+                        <td>{{ r.title }}</td>
+                        <td>
+                            <a href="{{ r.url_link }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                Open Link
+                            </a>
+                        </td>
+                        {% if session.user_role == 'Professor' %}
+                        <td>
+                            <!-- Form just for the delete button -->
+                            <form action="/resources" method="post" class="d-inline">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="resource_id" value="{{ r.id }}">
+                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                            </form>
+                        </td>
+                        {% endif %}
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-3">No resources added yet.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

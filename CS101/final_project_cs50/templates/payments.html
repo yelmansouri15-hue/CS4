@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Payments
+{% endblock %}
+
+{% block main %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Payment History</h2>
+        <!-- Button to trigger JavaScript filter -->
+        <button id="togglePaidBtn" class="btn btn-outline-secondary">Hide Paid Classes</button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Date & Time</th>
+                    <th>Student</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                    {% for c in classes %}
+                        <!-- The data-status attribute allows JS to identify the state easily -->
+                        <tr class="class-row" data-status="{{ c.status }}">
+                            <td>{{ c.date }} | {{ c.time_start }} - {{ c.time_end }}</td>
+                            {% if session.user_role == 'Professor' %}
+                                <td>{{ c.student_name }}</td>
+                            {% else %}
+                                <td>{{ c.professor_name }}</td>
+                            {% endif %}
+                            <td>
+                                {% if c.status == 'Paid' %}
+                                    <span class="badge bg-success">Paid</span>
+                                {% elif c.status == 'Revision' %}
+                                    <span class="badge bg-warning text-dark">Revision</span>
+                                    {% if session.user_role == 'Professor' and c.payment_proof %}
+                                        <br><small class="text-muted">Proof: {{ c.payment_proof }}</small>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-danger">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if session.user_role == 'Professor' %}
+                                    {% if c.status == 'Revision' %}
+                                        <form action="/payments" method="post" class="d-inline">
+                                            <input type="hidden" name="action" value="confirm">
+                                            <input type="hidden" name="schedule_id" value="{{ c.id }}">
+                                            <button type="submit" class="btn btn-sm btn-success">Confirm</button>
+                                        </form>
+                                    {% endif %}
+                                    
+                                    {% if c.status != 'Paid' %}
+                                        <form action="/payments" method="post" class="d-inline">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="schedule_id" value="{{ c.id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this class entirely?');">Mark as Not Held</button>
+                                        </form>
+                                    {% endif %}
+                                {% else %}
+                                    <!-- Student View -->
+                                    {% if c.status == 'Pending' %}
+                                        <form action="/payments" method="post" class="d-flex gap-2">
+                                            <input type="hidden" name="action" value="pay">
+                                            <input type="hidden" name="schedule_id" value="{{ c.id }}">
+                                            <input type="text" name="payment_proof" class="form-control form-control-sm" placeholder="Txn ID or link" required>
+                                            <button type="submit" class="btn btn-sm btn-primary">Submit</button>
+                                        </form>
+                                    {% elif c.status == 'Revision' %}
+                                        <small class="text-muted">Pending approval</small>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center">No past classes found.</td>
+                        </tr>
+                    {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% endblock %}

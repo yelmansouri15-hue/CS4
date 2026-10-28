@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Dashboard 
+{% endblock %}
+
+{% block main %}
+    <div class="mb-4 text-center">
+        <h1>Welcome, {{ username }}!</h1>
+        <h2>Weekly Schedule</h2>
+        <p class="text-muted">Showing classes from <strong>{{ start_of_week }}</strong> to <strong>{{ end_of_week }}</strong></p>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Student</th>
+                    <th>Price</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in classes %}
+                    <tr>
+                        <td>{{ c.date }}</td>
+                        <td>{{ c.time_start }} - {{ c.time_end }}</td>
+                        <td>{{ c.student_name }}</td>
+                        <td>€{{ "%.2f"|format(c.price) }}</td>
+                        <td>
+                            <!-- Cancel single session -->
+                            <form action="/classes" method="post" class="d-inline">
+                                <input type="hidden" name="action" value="cancel_single">
+                                <input type="hidden" name="schedule_id" value="{{ c.id }}">
+                                <button type="submit" class="btn btn-sm btn-outline-warning" onclick="return confirm('Cancel only this class?');">
+                                    Cancel Today
+                                </button>
+                            </form>
+
+                            <!-- Cancel entire recurring series -->
+                            <form action="/classes" method="post" class="d-inline">
+                                <input type="hidden" name="action" value="cancel_series">
+                                <input type="hidden" name="student_id" value="{{ c.student_id }}">
+                                <input type="hidden" name="time_start" value="{{ c.time_start }}">
+                                <input type="hidden" name="date" value="{{ c.date }}">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Cancel all future classes for this time slot?');">
+                                    Cancel Series
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">No classes scheduled for this week.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

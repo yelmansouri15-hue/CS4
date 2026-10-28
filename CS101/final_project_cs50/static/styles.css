@@ -1,0 +1,87 @@
+body {
+    background: linear-gradient(135deg, #532b76 0%, #76436d 100%);
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #a4f0ffde;
+}
+
+.text-muted {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.card {
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(10px);
+    color: #ffffff !important;
+    padding: 15px;
+}
+
+.table-responsive {
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(10px);
+    color: #ffffff !important;
+    overflow-x: auto;
+}
+
+.table {
+    color: #000000 !important;
+    margin-bottom: 0;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) {
+    color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.form-control, .form-select, .form-option {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+}
+
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    border-color: #a4f0ff !important;
+    box-shadow: 0 0 10px rgba(164, 240, 255, 0.3) !important;
+}
+
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+}
+    
+.btn:hover {
+    transform: translateY(-2px);
+}
+    
+.navbar {
+    background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.table td[colspan] {
+    color: #a4f0ffde !important;
+    background-color: transparent !important;
+    font-weight: 500;
+}
+
+select * {
+    color: #000000 !important;
+    background-color: transparent !important;
+    font-weight: 500;
+}
