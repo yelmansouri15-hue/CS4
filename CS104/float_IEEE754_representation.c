@@ -13,6 +13,7 @@ _Static_assert(sizeof(float) * CHAR_BIT == 32, "Error: byte must have 8 bits.");
 
 const unsigned short bits_float = sizeof(float) * CHAR_BIT;
 
+short exponent_bits(uint32_t n);
 float get_float(void);
 short sign_bit(uint32_t);
 
@@ -41,6 +42,13 @@ float get_float(void)
     while (check_input != 1);
 
     return number;
+}
+
+short exponent_bits(uint32_t n)
+{
+    short bits = (n >> 23) & 0xFF;
+
+    return bits;
 }
 
 short sign_bit(uint32_t n)
