@@ -11,7 +11,10 @@
 _Static_assert(sizeof(float) == 4, "Error: float must be 4 bytes.");
 _Static_assert(sizeof(float) * CHAR_BIT == 32, "Error: byte must have 8 bits.");
 
+const unsigned short bits_float = sizeof(float) * CHAR_BIT;
+
 float get_float(void);
+short sign_bit(uint32_t);
 
 int main(void)
 {
@@ -38,4 +41,11 @@ float get_float(void)
     while (check_input != 1);
 
     return number;
+}
+
+short sign_bit(uint32_t n)
+{
+    short bit = (n >> (bits_float - 1)) & 1;
+
+    return bit;
 }
