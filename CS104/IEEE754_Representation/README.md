@@ -9,7 +9,7 @@ Educational and industrial-grade implementation of a 32-bit single-precision flo
 To compile the program with strict warnings and standard compliance, use a compatible compiler like GCC or Clang:
 
 ```bash
-gcc -std=c11 -Wall -Wextra ieee754_decoder.c -o ieee754_decoder
+gcc -std=c11 -Wall -Wextra float_IEEE754_representation.c -o float_IEEE754_representation
 ```
 
 ---
@@ -18,7 +18,7 @@ gcc -std=c11 -Wall -Wextra ieee754_decoder.c -o ieee754_decoder
 
 1. Run the generated binary from the terminal:
    ```bash
-   ./ieee754_decoder
+   ./float_IEEE754_representation
    ```
 2. The program will prompt you to enter a decimal floating-point number (e.g., `5.5`, `-3.25`, `0.0`).
 3. It features a robust input validation wrapper over `scanf` that clears the input buffer if invalid characters (such as letters) are entered, preventing infinite loops.
