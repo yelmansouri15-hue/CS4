@@ -12,8 +12,12 @@ _Static_assert(sizeof(float) == 4, "Error: float must be 4 bytes.");
 _Static_assert(sizeof(float) * CHAR_BIT == 32, "Error: byte must have 8 bits.");
 
 const unsigned short bits_float = sizeof(float) * CHAR_BIT;
+const unsigned short position_exponent = 23;
+const unsigned short bitmask_exponent = 0xFF;
+const uint32_t bitmask_frac = 0x007FFFFF;
 
-short exponent_bits(uint32_t n);
+unsigned short exponent_bits(uint32_t n);
+uint32_t frac_bits(uint32_t n);
 float get_float(void);
 short sign_bit(uint32_t);
 
@@ -44,9 +48,16 @@ float get_float(void)
     return number;
 }
 
-short exponent_bits(uint32_t n)
+unsigned short exponent_bits(uint32_t n)
 {
-    short bits = (n >> 23) & 0xFF;
+    short bits = (n >> position_exponent) & bitmask_exponent;
+
+    return bits;
+}
+
+uint32_t frac_bits(uint32_t n)
+{
+    uint32_t bits = n & bitmask_frac;
 
     return bits;
 }
