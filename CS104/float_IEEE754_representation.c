@@ -37,13 +37,16 @@ int main(void)
 
 float get_float(void)
 {
-    int check_input;
+    int c, check_input;
     float number;
 
     do
     {
         printf("Enter a float number: ");
         check_input = scanf("%f", &number);
+
+        if (check_input != 1)
+            while ((c = getchar()) != '\n' && c != EOF);
     } 
     while (check_input != 1);
 
