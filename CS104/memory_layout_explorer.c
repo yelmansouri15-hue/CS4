@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,6 +10,29 @@
 #define MAX_INPUT_LEN 32
 #define PRINT_TYPE_INFO(type)\
     printf("%11s: size = %zu bytes\t\talignment = %zu bytes\n", #type, sizeof(type), _Alignof(type))
+#define SHOW_OFFSET(type, m)\
+    printf("%s = %zu\t", #m, offsetof(type, m))
+#define PRINT_OFFSETS(type, member1, member2, member3) do {\
+    printf("%19sOffsets: ", "");\
+    SHOW_OFFSET(type, member1);\
+    SHOW_OFFSET(type, member2);\
+    SHOW_OFFSET(type, member3);\
+    printf("\n");\
+} while(0)
+
+typedef struct
+{
+    char first;
+    int32_t second;
+    short third;
+} Inefficient_Struct;
+
+typedef struct
+{
+    int32_t first;
+    short second;
+    char third;
+} Efficient_Struct;
 
 void array_addresses(void);
 size_t get_size(void);
@@ -27,10 +51,20 @@ int main(void)
     PRINT_TYPE_INFO(float);
     PRINT_TYPE_INFO(double);
     PRINT_TYPE_INFO(long double);
-
     printf("\n");
 
     array_addresses();
+
+    printf("\nPress Enter to continue...");
+    getchar();
+
+    printf("\n\tAnd what if we change the ORDER of the members in a struct?\n");
+    printf("char - int - short:\n\t");
+    PRINT_TYPE_INFO(Inefficient_Struct);
+    PRINT_OFFSETS(Inefficient_Struct, first, second, third);
+    printf("int - short - char:\n\t  ");
+    PRINT_TYPE_INFO(Efficient_Struct);
+    PRINT_OFFSETS(Efficient_Struct, first, second, third);
 
     return EXIT_SUCCESS;
 }
@@ -48,7 +82,7 @@ void array_addresses(void)
     }
 
     printf("\t(Note: The distance between elements' addresses should be %zu bytes)\n", sizeof(int32_t));
-    printf("Adresses: |");
+    printf("\tAddresses: |");
 
     for (index = 0; index < size; index++)
         printf("%p|", (void*)&array[index]);
