@@ -10,7 +10,8 @@
 #define PRINT_TYPE_INFO(type)\
     printf("%11s: size = %zu bytes\t\talignment = %zu bytes\n", #type, sizeof(type), _Alignof(type))
 
-size_t get_size();
+void array_addresses(void);
+size_t get_size(void);
 
 int main(void)
 {
@@ -27,7 +28,34 @@ int main(void)
     PRINT_TYPE_INFO(double);
     PRINT_TYPE_INFO(long double);
 
+    printf("\n");
+
+    array_addresses();
+
     return EXIT_SUCCESS;
+}
+
+void array_addresses(void)
+{
+    size_t index;
+    size_t size = get_size();
+
+    int32_t *array = malloc(size * sizeof(int32_t));
+    if (array == NULL)
+    {
+        printf("Error: Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("\t(Note: The distance between elements' addresses should be %zu bytes)\n", sizeof(int32_t));
+    printf("Adresses: |");
+
+    for (index = 0; index < size; index++)
+        printf("%p|", (void*)&array[index]);
+
+    printf("\n");
+
+    free(array);
 }
 
 size_t get_size(void)
@@ -57,10 +85,10 @@ size_t get_size(void)
             invalid_number = true;
         }
 
-        if (strchr(input, '-') != NULL)
-            invalid_number = true;
-
         size = strtoul(input, &end, 10);
+
+        if (strchr(input, '-') != NULL || size == 0)
+            invalid_number = true;
 
         overflow = (errno == ERANGE);
         not_number = (end == input);
