@@ -35,7 +35,8 @@ typedef struct
 } Efficient_Struct;
 
 void array_addresses(void);
-void array_decay(int32_t *array);
+void array_decay(int32_t *);
+int32_t *create_array(size_t);
 size_t get_size(void);
 
 int main(void)
@@ -88,7 +89,7 @@ void array_addresses(void)
     size_t index;
     size_t size = get_size();
 
-    int32_t *array = malloc(size * sizeof(int32_t));
+    int32_t *array = create_array(size);
     if (array == NULL)
     {
         printf("Error: Memory allocation failed.\n");
@@ -109,6 +110,23 @@ void array_addresses(void)
 void array_decay(int32_t *array)
 {
     printf("Inside function, sizeof(array) = %zu bytes (It decayed to a pointer!)\n", sizeof(array));
+}
+
+int32_t *create_array(size_t n)
+{
+    if (n == 0 || n > SIZE_MAX / sizeof(int)) 
+    {
+        return NULL;
+    }
+
+    int32_t *array = malloc(n * sizeof *array);
+
+    if (array == NULL) 
+    {
+        return NULL;
+    }
+
+    return array;
 }
 
 size_t get_size(void)
