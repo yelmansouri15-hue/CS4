@@ -35,6 +35,7 @@ typedef struct
 } Efficient_Struct;
 
 void array_addresses(void);
+void array_decay(int32_t *array);
 size_t get_size(void);
 
 int main(void)
@@ -66,6 +67,19 @@ int main(void)
     PRINT_TYPE_INFO(Efficient_Struct);
     PRINT_OFFSETS(Efficient_Struct, first, second, third);
 
+    printf("\nPress Enter to continue...");
+    getchar();
+
+    int32_t array[10];
+    int32_t *pointer = array;
+
+    printf("\t1. Array vs Pointer (in local scope):\n");
+    printf("sizeof(array)   = %zu bytes (Total array size)\n", sizeof(array));
+    printf("sizeof(pointer) = %zu bytes (Pure pointer size)\n", sizeof(pointer));
+
+    printf("\n\t2. Array Decay (passing to a function):\n");
+    array_decay(array);
+
     return EXIT_SUCCESS;
 }
 
@@ -90,6 +104,11 @@ void array_addresses(void)
     printf("\n");
 
     free(array);
+}
+
+void array_decay(int32_t *array)
+{
+    printf("Inside function, sizeof(array) = %zu bytes (It decayed to a pointer!)\n", sizeof(array));
 }
 
 size_t get_size(void)
