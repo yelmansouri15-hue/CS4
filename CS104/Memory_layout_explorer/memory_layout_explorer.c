@@ -1,3 +1,10 @@
+/**
+ * @file memory_layout_explorer.c
+ * @brief Memory Layout Explorer - Investigating sizes, alignment, struct padding, 
+ *        array decay, and dynamic memory allocation in C.
+ * @author Yasser El Mansouri
+ */
+
 #include <errno.h>
 #include <limits.h>
 #include <stdbool.h>
@@ -34,8 +41,9 @@ typedef struct
     char third;
 } Efficient_Struct;
 
+/* --- Function Prototypes --- */
 void array_addresses(void);
-void array_decay(int32_t *);
+void array_decay(const int32_t *);
 int32_t *create_array(size_t);
 size_t get_size(void);
 
@@ -92,7 +100,7 @@ void array_addresses(void)
     int32_t *array = create_array(size);
     if (array == NULL)
     {
-        printf("Error: Memory allocation failed.\n");
+        fprintf(stderr, "Error: Memory allocation failed or invalid size.\n");
         exit(EXIT_FAILURE);
     }
 
@@ -107,14 +115,16 @@ void array_addresses(void)
     free(array);
 }
 
-void array_decay(int32_t *array)
+void array_decay(const int32_t *array)
 {
+    // Notice that sizeof(array) here evaluates to the size of the pointer (8 bytes on 64-bit), 
+    // confirming that the array has decayed to a pointer.
     printf("Inside function, sizeof(array) = %zu bytes (It decayed to a pointer!)\n", sizeof(array));
 }
 
 int32_t *create_array(size_t n)
 {
-    if (n == 0 || n > SIZE_MAX / sizeof(int)) 
+    if (n == 0 || n > SIZE_MAX / sizeof(int32_t)) 
     {
         return NULL;
     }
@@ -146,10 +156,11 @@ size_t get_size(void)
 
         if (fgets(input, sizeof(input), stdin) == NULL)
         {
-            printf("\nError: Input stream closed. Exiting.\n");
+            fprintf(stderr, "\nError: Input stream closed. Exiting.\n");
             exit(EXIT_FAILURE);   
         }
         
+        // Check if the input was longer than the buffer size
         if (strchr(input, '\n') == NULL)
         {
             while((c = getchar()) != '\n' && c != EOF);
@@ -163,9 +174,15 @@ size_t get_size(void)
 
         overflow = (errno == ERANGE);
         not_number = (end == input);
-        extra_chars = (*end != '\n' && *end != '\0');
+        extra_chars = (*end != '\n' && *end != '\0' && *end != '\r');
+
+        if (overflow || not_number || extra_chars || invalid_number)
+        {
+            printf("Invalid input. Please enter a positive integer.\n");
+            invalid_number = true; // Keep looping
+        }
     } 
-    while (overflow || not_number || extra_chars || invalid_number);
+    while (invalid_number);
 
     return (size_t)size;
 }
