@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-const size_t N = 256;
+static const size_t SIZES[] = {256, 512, 1024, 2048};
+static const size_t NUM_SIZES = sizeof(SIZES) / sizeof(SIZES[0]);
 
 static int64_t *create_matrix(size_t rows, size_t cols);
 static void init_matrix(int64_t *matrix, size_t rows, size_t cols);
@@ -11,28 +12,37 @@ static int64_t cols_route(const int64_t *matrix, size_t rows, size_t cols);
 
 int main (void)
 {
-    
+    volatile int64_t sink = 0;
     int64_t row_sum, col_sum;
-    int64_t *matrix = create_matrix(N, N);
-    if (matrix == NULL)
+
+    for (size_t s = 0; s < NUM_SIZES; s++)
     {
-        fprintf(stderr, "Error: failed to allocate contiguous matrix.\n");
-        return EXIT_FAILURE;
+        const size_t N = SIZES[s];
+
+        int64_t *matrix = create_matrix(N, N);
+        if (matrix == NULL)
+        {
+            fprintf(stderr, "Error: failed to allocate contiguous matrix.\n");
+            return EXIT_FAILURE;
+        }
+
+        init_matrix(matrix, N, N);
+
+        row_sum = rows_route(matrix, N, N);
+        col_sum = cols_route(matrix, N, N);
+        
+        free(matrix);
+
+        if (row_sum != col_sum)
+        {
+            fprintf(stderr, "Error: the sum is different in each route\n");
+            return EXIT_FAILURE;
+        }
+
+        sink ^= row_sum;
     }
 
-    init_matrix(matrix, N, N);
-
-    row_sum = rows_route(matrix, N, N);
-    col_sum = cols_route(matrix, N, N);
-    
-    free(matrix);
-
-    if (row_sum != col_sum)
-    {
-        fprintf(stderr, "Error: the sum is different in each route\n");
-        return EXIT_FAILURE;
-    }
-
+    (void)sink;
     return EXIT_SUCCESS;
 }
 
