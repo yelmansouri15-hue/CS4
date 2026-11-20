@@ -13,7 +13,6 @@ static int64_t cols_route(const int64_t *matrix, size_t rows, size_t cols);
 int main (void)
 {
     volatile int64_t sink = 0;
-    int64_t row_sum, col_sum;
 
     for (size_t s = 0; s < NUM_SIZES; s++)
     {
@@ -28,8 +27,11 @@ int main (void)
 
         init_matrix(matrix, N, N);
 
-        row_sum = rows_route(matrix, N, N);
-        col_sum = cols_route(matrix, N, N);
+        sink ^= rows_route(matrix, N, N);
+        sink ^= cols_route(matrix, N, N);
+
+        int64_t row_sum = rows_route(matrix, N, N);
+        int64_t col_sum = cols_route(matrix, N, N);
         
         free(matrix);
 
