@@ -11,6 +11,8 @@ static int64_t cols_route(const int64_t *matrix, size_t rows, size_t cols);
 
 int main (void)
 {
+    
+    int64_t row_sum, col_sum;
     int64_t *matrix = create_matrix(N, N);
     if (matrix == NULL)
     {
@@ -20,7 +22,17 @@ int main (void)
 
     init_matrix(matrix, N, N);
 
+    row_sum = rows_route(matrix, N, N);
+    col_sum = cols_route(matrix, N, N);
+    
     free(matrix);
+
+    if (row_sum != col_sum)
+    {
+        fprintf(stderr, "Error: the sum is different in each route\n");
+        return EXIT_FAILURE;
+    }
+
     return EXIT_SUCCESS;
 }
 
