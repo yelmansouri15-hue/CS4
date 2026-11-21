@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 static const size_t SIZES[] = {256, 512, 1024, 2048};
@@ -27,6 +28,8 @@ static int64_t rows_route(const int64_t *data, size_t rows, size_t cols);
 static int64_t cols_route(const int64_t *data, size_t rows, size_t cols);
 static double now_seconds(void);
 static double measure_once(traversal_fn fn, const Matrix *m, int64_t *out_sum);
+static bool median_seconds(const double *values, size_t count, double *out_median);
+static int compare_doubles(const void *lhs, const void *rhs);
 
 int main(void)
 {
@@ -88,6 +91,16 @@ static bool run_size_benchmark(size_t n, double *row_times, double *col_times, v
     }
 
     matrix_destroy(&m);
+
+    double row_median = 0.0;
+    double col_median = 0.0;
+    if (!median_seconds(row_times, MEASURED_RUNS, &row_median) ||
+        !median_seconds(col_times, MEASURED_RUNS, &col_median))
+    {
+        fprintf(stderr, "Error: failed to compute medians for N=%zu.\n", n);
+        return false;
+    }
+
     return true;
 }
 
@@ -157,6 +170,57 @@ static double measure_once(traversal_fn fn, const Matrix *m, int64_t *out_sum)
 
     *out_sum = sum;
     return t1 - t0;
+}
+
+static bool median_seconds(const double *values, size_t count, double *out_median)
+{
+    if (values == NULL || out_median == NULL || count == 0)
+    {
+        return false;
+    }
+
+    if (count > SIZE_MAX / sizeof(double))
+    {
+        return false;
+    }
+
+    double *copy = malloc(count * sizeof(double));
+    if (copy == NULL)
+    {
+        return false;
+    }
+
+    memcpy(copy, values, count * sizeof(double));
+    qsort(copy, count, sizeof(double), compare_doubles);
+
+    const size_t mid = count / 2;
+    if (count % 2 == 0)
+    {
+        *out_median = 0.5 * (copy[mid - 1] + copy[mid]);
+    }
+    else
+    {
+        *out_median = copy[mid];
+    }
+
+    free(copy);
+    return true;
+}
+
+static int compare_doubles(const void *lhs, const void *rhs)
+{
+    const double a = *(const double *)lhs;
+    const double b = *(const double *)rhs;
+
+    if (a < b)
+    {
+        return -1;
+    }
+    if (a > b)
+    {
+        return 1;
+    }
+    return 0;
 }
 
 static double now_seconds(void)
