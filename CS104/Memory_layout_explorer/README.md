@@ -1,4 +1,4 @@
-# Memory Layout Explorer (C99)
+# Memory Layout Explorer (C11)
 
 A robust systems-level C program designed to explore data alignment, memory allocation, structure padding, pointer behavior, and array decay.
 
