@@ -7,9 +7,13 @@
 #include <time.h>
 
 static const size_t SIZES[] = {256, 512, 1024, 2048};
-static const size_t NUM_SIZES = sizeof(SIZES) / sizeof(SIZES[0]);
-static const size_t WARMUP_RUNS = 1;
-static const size_t MEASURED_RUNS    = 9;
+#define NUM_SIZES (sizeof(SIZES) / sizeof((SIZES)[0]))
+#define WARMUP_RUNS 1U
+#define MEASURED_RUNS 9U
+#define CSV_PATH "benchmark.csv"
+
+_Static_assert(NUM_SIZES > 0, "SIZES must not be empty");
+_Static_assert(MEASURED_RUNS > 0, "MEASURED_RUNS must be greater than zero");
 
 typedef struct
 {
@@ -18,9 +22,20 @@ typedef struct
     size_t cols;
 } Matrix;
 
+typedef struct
+{
+    size_t dimension;
+    size_t bytes;
+    double row_median_sec;
+    double col_median_sec;
+} BenchmarkRow;
+
 typedef int64_t (*traversal_fn)(const int64_t *data, size_t rows, size_t cols);
 
-static bool run_size_benchmark(size_t n, double *row_times, double *col_times, volatile int64_t *sink);
+static bool csv_init(FILE **out_file, const char *path);
+static bool csv_append_row(FILE *fp, const BenchmarkRow *row);
+static bool run_size_benchmark(size_t n, double *row_times, double *col_times, 
+                               volatile int64_t *sink, BenchmarkRow *out_row);
 static bool matrix_create(Matrix *m, size_t rows, size_t cols);
 static void matrix_destroy(Matrix *m);
 static void matrix_init(Matrix *m);
@@ -37,16 +52,89 @@ int main(void)
     double row_times[MEASURED_RUNS];
     double col_times[MEASURED_RUNS];
 
-    for (size_t s = 0; s < NUM_SIZES; s++)
-        if (!run_size_benchmark(SIZES[s], row_times, col_times, &sink))
-            return EXIT_FAILURE;
+    FILE *csv = NULL;
+    if (!csv_init(&csv, CSV_PATH))
+        return EXIT_FAILURE;
 
+    for (size_t s = 0; s < NUM_SIZES; s++)
+    {
+        BenchmarkRow row = {0};
+
+        if (!run_size_benchmark(SIZES[s], row_times, col_times, &sink, &row))
+        {
+            fclose(csv);
+            return EXIT_FAILURE;
+        }
+
+        if (!csv_append_row(csv, &row))
+        {
+            fprintf(stderr, "Error: failed to write benchmark row for N=%zu.\n", SIZES[s]);
+            fclose(csv);
+            return EXIT_FAILURE;
+        }
+    }
+
+    if (fclose(csv) != 0) 
+    { 
+        fprintf(stderr, "Error: failed to close '%s'.\n", CSV_PATH); 
+        return EXIT_FAILURE; 
+    }
     (void)sink;
     return EXIT_SUCCESS;
 }
 
-static bool run_size_benchmark(size_t n, double *row_times, double *col_times, volatile int64_t *sink)
+static bool csv_init(FILE **out_file, const char *path)
 {
+    if (out_file == NULL || path == NULL)
+    {
+        return false;
+    }
+
+    FILE *fp = fopen(path, "w");
+    if (fp == NULL)
+    {
+        fprintf(stderr, "Error: failed to open '%s' for writing.\n", path);
+        return false;
+    }
+
+    if (fprintf(fp, "dimension,bytes,row_median_sec,col_median_sec\n") < 0)
+    {
+        fprintf(stderr, "Error: failed to write CSV header to '%s'.\n", path);
+        fclose(fp);
+        return false;
+    }
+
+    *out_file = fp;
+    return true;
+}
+
+static bool csv_append_row(FILE *fp, const BenchmarkRow *row)
+{
+    if (fp == NULL || row == NULL)
+    {
+        return false;
+    }
+
+    if (fprintf(fp, "%zu,%zu,%.9f,%.9f\n",
+                row->dimension,
+                row->bytes,
+                row->row_median_sec,
+                row->col_median_sec) < 0)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+static bool run_size_benchmark(size_t n, double *row_times, double *col_times, 
+                               volatile int64_t *sink, BenchmarkRow *out_row)
+{
+    if (row_times == NULL || col_times == NULL || sink == NULL || out_row == NULL)
+    {
+        return false;
+    }
+
     Matrix m;
     if (!matrix_create(&m, n, n))
     {
@@ -101,11 +189,21 @@ static bool run_size_benchmark(size_t n, double *row_times, double *col_times, v
         return false;
     }
 
+    out_row->dimension = n;
+    out_row->bytes = n * n * sizeof(int64_t);
+    out_row->row_median_sec = row_median;
+    out_row->col_median_sec = col_median;
+
     return true;
 }
 
 static bool matrix_create(Matrix *m, size_t rows, size_t cols)
 {
+    if (m == NULL)
+    {
+        return false;
+    }
+
     m->data = NULL;
     m->rows = 0;
     m->cols = 0;
@@ -127,6 +225,11 @@ static bool matrix_create(Matrix *m, size_t rows, size_t cols)
 
 static void matrix_destroy(Matrix *m)
 {
+    if (m == NULL)
+    {
+        return;
+    }
+
     free(m->data);
     m->data = NULL;
     m->rows = 0;
@@ -135,6 +238,11 @@ static void matrix_destroy(Matrix *m)
 
 static void matrix_init(Matrix *m)
 {
+    if (m == NULL || m->data == NULL)
+    {
+        return;
+    }
+
     for (size_t i = 0; i < m->rows; i++)
         for (size_t j = 0; j < m->cols; j++)
             m->data[i * m->cols + j] = (int64_t)(i + j);
@@ -142,6 +250,11 @@ static void matrix_init(Matrix *m)
 
 static int64_t rows_route(const int64_t *data, size_t rows, size_t cols)
 {
+    if (data == NULL) 
+    { 
+        return 0; 
+    }
+
     int64_t sum = 0;
 
     for (size_t i = 0; i < rows; i++)
@@ -153,6 +266,11 @@ static int64_t rows_route(const int64_t *data, size_t rows, size_t cols)
 
 static int64_t cols_route(const int64_t *data, size_t rows, size_t cols)
 {
+    if (data == NULL) 
+    { 
+        return 0; 
+    }
+
     int64_t sum = 0;
 
     for (size_t j = 0; j < cols; j++)
