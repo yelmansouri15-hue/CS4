@@ -4,6 +4,6 @@
 int main(void) 
 { 
     int resultado = sumar(15, 27); 
-    printf("Resultado = %d\\n", resultado); 
+    printf("Resultado = %d\n", resultado); 
     return 0; 
 }
